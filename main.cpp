@@ -1,4 +1,6 @@
 #include <iostream>
+#include <time.h> //nao usei ainda
+#include <unistd.h> // biblioteca para sleep, é unix-like mas vem com gcc
 
 // limpar a tela do terminal
     #ifdef _WIN32 // caso windows
@@ -18,22 +20,25 @@ void MostreMenu(){
 
 }
 
+// função para converter uma string
+int RetornoInteiro(std:: string x, int limite){
+    int inteiro = x[0] - 48;
+
+    if((x[1] - 48) >= 0 || inteiro > limite){
+        system(clear);
+        std:: cout << "Opção inválida, tente novamente" << std:: endl;
+        sleep(1);
+        return inteiro = limite + 1; // para cair em default
+    }
+     else return inteiro;
+}
+
 struct Produto{
     std:: string nome;
     float quantidade;
     float valor;
 
 };
-
-int RetornoInteiro(std:: string x, int limite){
-    int inteiro = x[0] - 48;
-
-    if((x[1] > 0 || x[1] < 0 ) && inteiro > limite){
-        std:: cout << "Opção inválida, tente novamente" << std:: endl;
-        return inteiro = limite + 1; // para cair em default
-    }
-     else return inteiro;
-}
 
 void Cadastro(){
     system(clear);
@@ -70,15 +75,8 @@ int main(){
         std:: string numeroMenu;
         std:: cin >> numeroMenu;
 
-        //código para correção do input de string -> int, iniciou como string para não quebrar
-        int numero = numeroMenu[0] - 48;
-        if(numeroMenu[1] > 0 || numeroMenu[1] < 0){
-            std:: cout << "Opção inválida, tente novamente" << std:: endl;
-            return main();
-        }
-
         //switch para a posição escolhida
-        switch (numero){
+        switch (RetornoInteiro(numeroMenu, 4)){
         case 1 :
             Cadastro();
             break;
@@ -90,6 +88,8 @@ int main(){
             break;
         case 4 : 
             std:: cout << "Saindo...";
+            sleep(1);
+            system(clear);
             rodando = false;
             break;
         default:
