@@ -1,6 +1,9 @@
 #include <iostream>
-#include <time.h> //nao usei ainda
-#include <unistd.h> // biblioteca para sleep, é unix-like mas vem com gcc
+#include <time.h> //nao usei ainda -> talvez dê pra calendários :)
+#include <unistd.h> // biblioteca para sleep, é unix-like mas vem com o gcc
+#include <fstream>
+
+
 
 // limpar a tela do terminal
     #ifdef _WIN32 // caso windows
@@ -8,6 +11,22 @@
     #else // caso não
     #define clear "clear";
     #endif
+
+//função para ler o arquivo de produtos, deve ser executado antes da inicialização
+void LerArquivo(){
+
+    std:: ifstream leitor;
+    leitor.open("produtos.txt");
+    if( leitor.is_open()){
+        
+
+    }
+    else LerArquivo();
+
+
+}
+
+
 
 // função para printar o menu inicial na tela do usuário
 void MostreMenu(){
