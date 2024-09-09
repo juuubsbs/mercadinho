@@ -3,43 +3,81 @@
 #include <unistd.h> // biblioteca para sleep, é unix-like mas vem com o gcc
 #include <fstream>
 
+// As funções estão em ordem de execução
 
-
-// limpar a tela do terminal
+// limpar a tela do terminal em qualquer sistema
     #ifdef _WIN32 // caso windows
     #define clear "cls"
     #else // caso não
     #define clear "clear";
     #endif
 
-//função para ler o arquivo de produtos, deve ser executado antes da inicialização
-void LerArquivo(){
+// IDEIAS
+// usar uma array que salva todos os nomes de itens pra poder buscar depois
 
-    std:: ifstream leitor;
-    leitor.open("produtos.txt");
-    if( leitor.is_open()){
-        
+//----------------- início do programa -----------------------------------------------------------
 
-    }
-    else LerArquivo();
 
+// Caracteriza os produtos
+struct Produto{
+    std:: string nome;
+    float quantidade;
+    float valor;
+
+};
+
+//escreve as informações enviadas por Cadastro()
+void Escritor(std:: string nomeProduto, float quantidadeProduto, float valorProduto){
+
+    std:: ofstream escritor;
+    escritor.open("produtos.txt", std::ios::app);//app é para append mode, onde ele começa a escrever do fim do arquivo
+
+    escritor << nomeProduto << " ";
+    escritor << quantidadeProduto << " ";
+    escritor << valorProduto << " " << std:: endl;
 
 }
 
+//lê as informações já presentes no arquivo
+bool Leitor(std:: string nome){
 
+    std:: string nomeProduto;
+    float quantidadeProduto;
+    float valorProduto;
 
+    std:: ifstream leitor;
+    leitor.open("produtos.txt");
+
+    while(leitor.eof() == false){
+        leitor >> nomeProduto;
+        if(nomeProduto == nome){
+            return true;
+        }
+        leitor >> quantidadeProduto;
+        leitor >> valorProduto;
+    }
+
+    return false;
+
+}
 // função para printar o menu inicial na tela do usuário
 void MostreMenu(){
     system(clear);
 
-    std:: cout << "......1- Cadastro......" << std:: endl;
-    std:: cout << "......2- Venda........." << std:: endl;
-    std:: cout << "......3- Pagamentos...." << std:: endl;
-    std:: cout << "......4- Sair.........." << std:: endl;
+    std:: cout << "Bem-Vindo ao Mercadinho!\n" << std:: endl;
+
+    std:: cout << "......1- Cadastro/Consulta......" << std:: endl;
+    std:: cout << "......2- Venda.................." << std:: endl;
+    std:: cout << "......3- Pagamentos............." << std:: endl;
+    std:: cout << "......4- Sobre.................." << std:: endl;
+    std:: cout << "......5- Sair..................." << std:: endl;
+
+
+    std:: cout << "Digite a opção desejada: ";
 
 }
 
-// função para converter uma string
+// função para converter uma string em int
 int RetornoInteiro(std:: string x, int limite){
     int inteiro = x[0] - 48;
 
@@ -52,32 +90,61 @@ int RetornoInteiro(std:: string x, int limite){
      else return inteiro;
 }
 
-struct Produto{
-    std:: string nome;
-    float quantidade;
-    float valor;
+bool JaCadastrado (std:: string nomeProduto){
 
-};
+    std:: string resposta;
 
+    if (Leitor(nomeProduto) == true){
+        std:: cout << "O produto informado já foi cadastrado!" << std:: endl;
+        std:: cout << "Gostaria de alterá-lo?" << std:: endl;
+        std:: cout << "sim(s) não(n): ";
+        std:: cin >> resposta;
+
+        if(resposta == "sim" || resposta == "Sim" || resposta == "s" || resposta == "S"){
+            //função para deletar a linha onde o produto se encontra
+            return true;
+        }
+        else if(resposta == "não" || resposta == "nao" || resposta == "Não" || resposta == "Nao"|| resposta == "n" || resposta == "N"){
+            std:: cout << "Voltando para o menu...";
+            sleep(1);
+            return false;
+        }
+
+    }
+
+    return false;
+
+}
+
+// função para cadastrar os produtos
 void Cadastro(){
     system(clear);
 
     Produto produto;
 
     std:: cout << "Olá, vamos cadastrar seu produto! \n";
-    std:: cout << "Primeiro, você irá digitar o nome de seu produto, informaremos a você caso ele já esteja cadastrado";
+    std:: cout << "Primeiro, você irá digitar o nome de seu produto,\ninformaremos a você caso ele já esteja cadastrado :)" << std:: endl;
+    
+    std:: cout << "Nome do produto: ";
     std:: cin >> produto.nome;
 
-    //if (JaCadastrado(produto.nome) == true)
+        if(JaCadastrado(produto.nome) == false){
+
+    std:: cout << "Quantidade do produto: ";
+    std:: cin >> produto.quantidade;
+
+    std:: cout << "Valor do produto: ";
+    std:: cin >> produto.valor;
+
+    Escritor(produto.nome, produto.quantidade, produto.valor );
+        } 
+        
+
+    //if 
 
 }
 
-bool JaCadastrado (){
 
-    
-
-    return false;
-}
 
 
 
@@ -95,7 +162,7 @@ int main(){
         std:: cin >> numeroMenu;
 
         //switch para a posição escolhida
-        switch (RetornoInteiro(numeroMenu, 4)){
+        switch (RetornoInteiro(numeroMenu, 5)){
         case 1 :
             Cadastro();
             break;
@@ -106,6 +173,9 @@ int main(){
             //pagamentos();
             break;
         case 4 : 
+            //sobre();
+            break;
+        case 5 :
             std:: cout << "Saindo...";
             sleep(1);
             system(clear);
