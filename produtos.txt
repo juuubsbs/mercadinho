@@ -1,2 +1,3 @@
-agua 12 2 
-uva 1 3
+uva 3 4
+banana 34 5 
+banana 5 7 

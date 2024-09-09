@@ -60,6 +60,24 @@ bool Leitor(std:: string nome){
     return false;
 
 }
+
+void Apagador(std:: string antigoNome){
+
+    std:: string nome;
+    std:: fstream apagador;
+    apagador.open("produtos.txt");
+
+    while(apagador.eof() == false){
+        apagador >> nome;
+        if(antigoNome == nome){
+        apagador << "" ;
+
+        }
+    }
+}
+
+
+
 // função para printar o menu inicial na tela do usuário
 void MostreMenu(){
     system(clear);
@@ -96,19 +114,7 @@ bool JaCadastrado (std:: string nomeProduto){
 
     if (Leitor(nomeProduto) == true){
         std:: cout << "O produto informado já foi cadastrado!" << std:: endl;
-        std:: cout << "Gostaria de alterá-lo?" << std:: endl;
-        std:: cout << "sim(s) não(n): ";
-        std:: cin >> resposta;
-
-        if(resposta == "sim" || resposta == "Sim" || resposta == "s" || resposta == "S"){
-            //função para deletar a linha onde o produto se encontra
-            return true;
-        }
-        else if(resposta == "não" || resposta == "nao" || resposta == "Não" || resposta == "Nao"|| resposta == "n" || resposta == "N"){
-            std:: cout << "Voltando para o menu...";
-            sleep(1);
-            return false;
-        }
+        return true;
 
     }
 
@@ -121,6 +127,7 @@ void Cadastro(){
     system(clear);
 
     Produto produto;
+    std:: string resposta;
 
     std:: cout << "Olá, vamos cadastrar seu produto! \n";
     std:: cout << "Primeiro, você irá digitar o nome de seu produto,\ninformaremos a você caso ele já esteja cadastrado :)" << std:: endl;
@@ -128,21 +135,38 @@ void Cadastro(){
     std:: cout << "Nome do produto: ";
     std:: cin >> produto.nome;
 
-        if(JaCadastrado(produto.nome) == false){
+    if(JaCadastrado(produto.nome) == false){
 
-    std:: cout << "Quantidade do produto: ";
-    std:: cin >> produto.quantidade;
+        std:: cout << "Quantidade do produto: ";
+        std:: cin >> produto.quantidade;
 
-    std:: cout << "Valor do produto: ";
-    std:: cin >> produto.valor;
+        std:: cout << "Valor da unidade: R$ "; 
+        std:: cin >> produto.valor;
 
-    Escritor(produto.nome, produto.quantidade, produto.valor );
-        } 
-        
+        Escritor(produto.nome, produto.quantidade, produto.valor);
+    }
 
-    //if 
+    else{
 
-}
+        std:: cout << "Gostaria de alterá-lo? "
+                   << "sim(s) não (n): ";
+        std:: cin >> resposta;
+
+        if(resposta == "s" || resposta == "S" || resposta == "sim" || resposta == "Sim" || resposta == "dã"){
+            Apagador(produto.nome);
+            
+            std:: cout << "Quantidade do produto: ";
+            std:: cin >> produto.quantidade;
+
+            std:: cout << "Valor da unidade: R$ "; 
+            std:: cin >> produto.valor;
+        }
+
+        Escritor(produto.nome, produto.quantidade, produto.valor);
+    }
+
+} 
+
 
 
 
