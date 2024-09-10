@@ -61,22 +61,23 @@ bool Leitor(std:: string nome){
 
 }
 
-void Apagador(std:: string antigoNome){
+//RESOLVER
+void Apagador(std:: string nomeProduto, float quantidadeProduto, float valorProduto){
 
-    std:: string nome;
     std:: fstream apagador;
+    std:: string linha;
     apagador.open("produtos.txt");
-
+    
     while(apagador.eof() == false){
-        apagador >> nome;
-        if(antigoNome == nome){
-        apagador << "" ;
-
+        apagador >> linha;
+        if(nomeProduto == linha){
+            linha = "eee";
+            apagador << linha;
+            apagador << "a";
+            apagador << "a";
         }
     }
 }
-
-
 
 // função para printar o menu inicial na tela do usuário
 void MostreMenu(){
@@ -85,7 +86,7 @@ void MostreMenu(){
     std:: cout << "Bem-Vindo ao Mercadinho!\n" << std:: endl;
 
     std:: cout << "......1- Cadastro/Consulta......" << std:: endl;
-    std:: cout << "......2- Venda.................." << std:: endl;
+    std:: cout << "......2- Carrinho..............." << std:: endl;
     std:: cout << "......3- Pagamentos............." << std:: endl;
     std:: cout << "......4- Sobre.................." << std:: endl;
     std:: cout << "......5- Sair..................." << std:: endl;
@@ -153,22 +154,49 @@ void Cadastro(){
         std:: cin >> resposta;
 
         if(resposta == "s" || resposta == "S" || resposta == "sim" || resposta == "Sim" || resposta == "dã"){
-            Apagador(produto.nome);
+            Apagador(produto.nome, produto.quantidade, produto.valor);
             
             std:: cout << "Quantidade do produto: ";
             std:: cin >> produto.quantidade;
 
             std:: cout << "Valor da unidade: R$ "; 
             std:: cin >> produto.valor;
-        }
 
-        Escritor(produto.nome, produto.quantidade, produto.valor);
+            Escritor(produto.nome, produto.quantidade, produto.valor);
+        }
     }
 
 } 
 
 
 
+void Carrinho(){
+
+    system(clear);
+
+    Produto produto;
+
+    std:: cout << "Olá, vamos adicionar produtos ao carrinho!" << std:: endl;
+    std:: cout << "Digite o nome do produto e a quantidade para adicionarmos :)" << std:: endl;
+
+    std:: cout << "Nome do produto: ";
+    std:: cin >> produto.nome;
+
+    if(JaCadastrado(produto.nome) == true){
+        std:: cout << "Quantidade do produto: ";
+        std:: cin >> produto.quantidade;
+
+        Apagador(produto.nome, produto.quantidade, 0);
+
+    }
+
+    else{
+        std:: cout << "Produto não cadastrado, você será redirecionado para a página de cadastro...";
+        Cadastro();
+    }
+
+
+}
 
 
 
@@ -191,7 +219,7 @@ int main(){
             Cadastro();
             break;
         case 2 :
-            //venda();
+            Carrinho();
             break;
         case 3 :
             //pagamentos();
