@@ -17,7 +17,7 @@
 
 //----------------- início do programa -----------------------------------------------------------
 
-int RetornoInteiro(std:: string nome, int limite);
+int RetornoInteiroSwitch(std:: string x, int limite);
 
 // Caracteriza os produtos
 struct Produto{
@@ -26,6 +26,12 @@ struct Produto{
     float valor;
 
 };
+
+//função de abrir arquivinhos
+void CriarArquivos(){
+    std::ofstream temp("temp.txt");
+    temp.close();
+}
 
 //escreve as informações enviadas por Cadastro()
 void Escritor(std:: string nomeProduto, float quantidadeProduto, float valorProduto){
@@ -44,52 +50,69 @@ void Escritor(std:: string nomeProduto, float quantidadeProduto, float valorProd
 bool Leitor(std:: string nome){
 
     std:: string nomeProduto;
-    float quantidadeProduto;
-    float valorProduto;
 
     std:: ifstream leitor;
     leitor.open("produtos.txt");
 
     while(leitor.eof() == false){
+
         leitor >> nomeProduto;
+
         if(nomeProduto == nome){
             return true;
         }
-        leitor >> quantidadeProduto;
-        leitor >> valorProduto;
+    }
+
+
+    leitor.close();
+    return false;
+}
+
+void Apagador(std:: string nomeProduto){
+
+    std:: ifstream leitor;
+    std:: ofstream escritor;
+    std:: string produto;
+    std:: string quantidade;
+    std:: string valor;
+
+    leitor.open("produtos.txt");
+    escritor.open("temp.txt", std:: ios_base:: app);
+
+    while(leitor.eof() == false){
+        leitor >> produto;
+        leitor >> quantidade;
+        leitor >> valor;
+        if(nomeProduto != produto){
+            escritor << produto << " ";
+            escritor << quantidade << " ";
+            escritor << valor << std:: endl;
+        }
     }
 
     leitor.close();
+    escritor.close();
 
-    return false;
+    std:: remove ("produtos.txt");
+    std:: rename ("temp.txt", "produtos.txt");
+
+    CriarArquivos();
 
 }
 
-//corrige os valor após eles serem adicionados ao carrinho
-int Corretor(std:: string nomeProduto, float quantidadeProduto, float valorProduto){
 
-    std:: fstream apagador;
-    std:: string linha[3];
-    apagador.open("produtos.txt");
-    
-    while(apagador.eof() == false){
-        apagador >> linha[0];
-        apagador >> linha[1];
-        apagador >> linha[2];
-        if(nomeProduto == linha[0]){
-            apagador << "foiiii";
-            return 0;
-        }
-        else {
-            apagador << linha[0] << "nada";
-            apagador << linha[1];
-            apagador << linha[2];
+bool JaCadastrado (std:: string nomeProduto){
 
-        }
+    std:: string resposta;
+
+    if (Leitor(nomeProduto) == true){
+        std:: cout << "O produto informado já foi cadastrado!" << std:: endl;
+        return true;
+
     }
-    apagador.close();
 
-    return 0;
+    return false;
+
 }
 
 // função para printar o menu inicial na tela do usuário
@@ -109,8 +132,8 @@ void MostreMenu(){
 
 }
 
-// função para converter uma string em int
-int RetornoInteiro(std:: string x, int limite){
+// função para converter uma string em int nos switch-case
+int RetornoInteiroSwitch(std:: string x, int limite){
     int inteiro = x[0] - 48;
 
     if((x[1] - 48) >= 0 || inteiro > limite){
@@ -120,20 +143,6 @@ int RetornoInteiro(std:: string x, int limite){
         return inteiro = limite + 1; // para cair em default
     }
      else return inteiro;
-}
-
-bool JaCadastrado (std:: string nomeProduto){
-
-    std:: string resposta;
-
-    if (Leitor(nomeProduto) == true){
-        std:: cout << "O produto informado já foi cadastrado!" << std:: endl;
-        return true;
-
-    }
-
-    return false;
-
 }
 
 // função para cadastrar os produtos
@@ -167,7 +176,7 @@ void Cadastro(){
         std:: cin >> resposta;
 
         if(resposta == "s" || resposta == "S" || resposta == "sim" || resposta == "Sim" || resposta == "dã"){
-            Corretor(produto.nome, 0, 0);
+            Apagador(produto.nome);
             
             std:: cout << "Quantidade do produto: ";
             std:: cin >> produto.quantidade;
@@ -198,9 +207,12 @@ void Carrinho(){
     if(JaCadastrado(produto.nome) == true){
         std:: cout << "Quantidade do produto: ";
         std:: cin >> produto.quantidade;
-        Corretor(produto.nome, produto.quantidade, 0);
 
-        //apagadoooooor
+        std::ofstream carrinho("carrinho.txt");
+        carrinho << produto.nome << " ";
+        carrinho << produto.quantidade << " ";
+        carrinho << produto.valor << std:: endl;
+        carrinho.close();
 
     }
 
@@ -208,6 +220,8 @@ void Carrinho(){
         std:: cout << "Produto não cadastrado, você será redirecionado para a página de cadastro...";
         Cadastro();
     }
+
+    //código para salvar no carrinho
 
 
 }
@@ -228,7 +242,7 @@ int main(){
         std:: cin >> numeroMenu;
 
         //switch para a posição escolhida
-        switch (RetornoInteiro(numeroMenu, 5)){
+        switch (RetornoInteiroSwitch(numeroMenu, 5)){
         case 1 :
             Cadastro();
             break;

@@ -1,4 +1,2 @@
-uva 3 4
-agua 1 2
-laranja 2 4
-melancia 5 6
+laranja 3 2
+banana 3 5 
