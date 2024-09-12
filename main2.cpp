@@ -12,25 +12,25 @@
     #define clear "clear";
     #endif
 
-// IDEIAS
-// usar uma array que salva todos os nomes de itens pra poder buscar depois
 
 //----------------- início do programa -----------------------------------------------------------
 
 int RetornoInteiroSwitch(std:: string x, int limite);
+void Cadastro();
 
 // Caracteriza os produtos
 struct Produto{
     std:: string nome;
     float quantidade;
     float valor;
-
 };
 
 //função de abrir arquivinhos
 void CriarArquivos(){
-    std::ofstream temp("temp.txt");
+    std:: ofstream temp("temp.txt");
+    std:: fstream carrinho("carrinho.txt");
     temp.close();
+    carrinho.close();
 }
 
 //escreve as informações enviadas por Cadastro()
@@ -41,7 +41,7 @@ void Escritor(std:: string nomeProduto, float quantidadeProduto, float valorProd
 
     escritor << nomeProduto << " ";
     escritor << quantidadeProduto << " ";
-    escritor << valorProduto << " " << std:: endl;
+    escritor << valorProduto << " \n";
 
     escritor.close();
 }
@@ -62,8 +62,6 @@ bool Leitor(std:: string nome){
             return true;
         }
     }
-
-
     leitor.close();
     return false;
 }
@@ -77,27 +75,22 @@ void Apagador(std:: string nomeProduto){
     std:: string valor;
 
     leitor.open("produtos.txt");
-    escritor.open("temp.txt", std:: ios_base:: app);
+    escritor.open("temp.txt");
 
-    while(leitor.eof() == false){
-        leitor >> produto;
-        leitor >> quantidade;
-        leitor >> valor;
+    while(leitor >> produto && leitor >> quantidade && leitor >> valor){
         if(nomeProduto != produto){
             escritor << produto << " ";
             escritor << quantidade << " ";
-            escritor << valor << std:: endl;
+            escritor << valor << std::endl;
         }
     }
 
     leitor.close();
     escritor.close();
-
     std:: remove ("produtos.txt");
     std:: rename ("temp.txt", "produtos.txt");
 
     CriarArquivos();
-
 }
 
 
@@ -112,7 +105,80 @@ bool JaCadastrado (std:: string nomeProduto){
     }
 
     return false;
+}
 
+// função de leitor de quantidade
+void LeitorQuantidade( std:: string nomeProduto, float quantidadeProduto){
+
+        std::ofstream carrinho("carrinho.txt", std:: ios_base:: app);
+        std::fstream produtos("produtos.txt");
+
+        std:: string produto;
+        float quantidade;
+        float valor;
+        int i = 0;
+        
+        while( produtos >> produto && produtos >> quantidade && produtos >> valor){
+
+            if( produto == nomeProduto && i == 0){
+                if (quantidade >= quantidadeProduto){
+                    carrinho << produto << " ";
+                    carrinho << quantidadeProduto << " ";
+                    carrinho << (valor*quantidadeProduto) << std:: endl;
+                    
+                    produtos.close();
+                    Apagador(nomeProduto);
+                    Escritor(nomeProduto, (quantidade - quantidadeProduto), valor);
+                    i++;
+                }
+                else {
+                    std:: string resposta;
+                    std:: cout << "A quantidade digitada não é válida! "; 
+                    std:: cout << "Gostaria de cadastrar uma nova quantidade? sim(s) não(): " << std:: endl;
+                    std:: cin >> resposta;
+                    if(resposta == "S" || resposta == "s" || resposta == "sim" || resposta == "Sim"){
+                        std:: cout << "Você será redirecionado para a aba de cadastros...";
+                        sleep(2);
+                        Cadastro();
+
+
+                    }
+                }
+
+            }
+        }
+        carrinho.close();
+}
+
+//função para printar a tela de pagamentos e mostrar as condições e as datas
+void Pagamentos(){
+    system(clear);
+
+    std:: ifstream carrinho;
+    std:: string produto;
+    float quantidade;
+    float valor;
+    float valorTotal;
+
+    std:: string formaPagamento;
+
+    carrinho.open("carrinho.txt");
+
+    std:: cout << "Bem-Vindo a tela de pagamentos! Aqui está o que você salvou no carrinho até agora:  " << std:: endl << std:: endl;
+
+    while( carrinho >> produto && carrinho >> quantidade && carrinho >> valor){
+        std:: cout << "Nome do Produto: " << produto << std:: endl;
+        std:: cout << "Quantidade: " << quantidade << std:: endl;
+        std:: cout << "Valor: R$ " << valor << std:: endl << std:: endl;
+        valorTotal+= valor;
+    }
+
+    std:: cout << "Total da compra: R$" << valorTotal; 
+
+    std:: cin >> formaPagamento;
+
+    carrinho.close();
+    
 }
 
 // função para printar o menu inicial na tela do usuário
@@ -187,7 +253,6 @@ void Cadastro(){
             Escritor(produto.nome, produto.quantidade, produto.valor);
         }
     }
-
 } 
 
 
@@ -208,22 +273,14 @@ void Carrinho(){
         std:: cout << "Quantidade do produto: ";
         std:: cin >> produto.quantidade;
 
-        std::ofstream carrinho("carrinho.txt");
-        carrinho << produto.nome << " ";
-        carrinho << produto.quantidade << " ";
-        carrinho << produto.valor << std:: endl;
-        carrinho.close();
-
+        LeitorQuantidade(produto.nome, produto.quantidade);
     }
 
     else{
         std:: cout << "Produto não cadastrado, você será redirecionado para a página de cadastro...";
+        sleep(2);
         Cadastro();
     }
-
-    //código para salvar no carrinho
-
-
 }
 
 
@@ -250,7 +307,7 @@ int main(){
             Carrinho();
             break;
         case 3 :
-            //pagamentos();
+            Pagamentos();
             break;
         case 4 : 
             //sobre();
