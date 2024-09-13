@@ -1,8 +1,9 @@
 #include <iostream>
 #include <time.h> //nao usei ainda -> talvez dê pra calendários :)
 #include <unistd.h> // biblioteca para sleep, é unix-like mas vem com o gcc
+#include <chrono>
 #include <fstream>
-#include <sstream>
+#include <sstream> // biblioteca que tá convertento de string pra float
 
 // As funções estão em ordem de execução
 
@@ -32,17 +33,20 @@ struct Produto{
 //função de abrir arquivinhos
 void CriarArquivos(){
 
-    std:: ofstream temp("temp.txt");
-    std:: fstream carrinho("carrinho.txt");
+    std:: ofstream temp("temp.txt", std:: ios_base:: app);
+    std:: ofstream carrinho("carrinho.txt", std:: ios_base:: app);
+    std:: ofstream produtos("produtos.txt", std:: ios_base:: app); 
+
     temp.close();
     carrinho.close();
+    produtos.close();
 }
 
 //escreve as informações enviadas por Cadastro()
 void Escritor(std:: string nomeProduto, float quantidadeProduto, float valorProduto){
 
     std:: ofstream escritor;
-    escritor.open("produtos.txt", std::ios::app);//app é para append mode, onde ele começa a escrever do fim do arquivo
+    escritor.open ("produtos.txt", std::ios::app);//app é para append mode, onde ele começa a escrever do fim do arquivo
 
     if(quantidadeProduto != 0){
         escritor << nomeProduto << " ";
@@ -61,7 +65,7 @@ bool Leitor(std:: string nome){
     std:: string nomeProduto;
 
     std:: ifstream leitor;
-    leitor.open("produtos.txt");
+    leitor.open ("produtos.txt");
 
     while(leitor.eof() == false){
 
@@ -147,6 +151,7 @@ void LeitorQuantidade(std:: string nomeProduto, float quantidadeProduto){
             if( produto == nomeProduto && i == 0){
                 if(quantidadeProduto == 0){
                     std:: cout << "A quantidade digitada foi nula! Digite novamente...";
+                    sleep(1);
                     Carrinho();
                 }
                 else if (quantidade >= quantidadeProduto){
@@ -296,9 +301,7 @@ void Carrinho(){
         produto.quantidade = RetornoFloatQuantidade(quantidade);
 
         LeitorQuantidade(produto.nome, produto.quantidade);
-
-        std:: cout << "Produto cadastrado com sucesso!";
-        sleep(2);
+        sleep(1);
     }
 
     else{
@@ -322,9 +325,9 @@ void Pagamentos(){
 
     std:: ifstream carrinho;
     std:: string produto;
-    float quantidade;
-    float valor;
-    float valorTotal;
+    float quantidade = 0;
+    float valor = 0;
+    float valorTotal = 0;
 
     std:: string formaPagamento;
 
@@ -339,9 +342,68 @@ void Pagamentos(){
         valorTotal+= valor;
     }
 
-    std:: cout << "Total da compra: R$" << valorTotal; 
+    std:: cout << "Total da compra: R$" << valorTotal << std:: endl; 
+
+    std:: cout << "Escolha a forma de pagamento... " << std:: endl;
+    std:: cout << "...1- A vista (5% de desconto)................" << std:: endl;
+    std:: cout << "...2- Parcelado em até 3x sem juros..........." << std:: endl;
+    std:: cout << "...3- Parcelado em até 12x com 10% de juros..." << std:: endl << std:: endl;
+    std:: cout << "Digite aqui: ";
 
     std:: cin >> formaPagamento;
+
+    //para setar a saída correta da data do sistema
+    auto now = std::chrono::system_clock::now();
+    std::time_t hora_hoje = std::chrono::system_clock::to_time_t(now);
+    std::tm* tm_ptr = std::localtime(&hora_hoje);
+
+    std:: string sair;
+    switch (RetornoInteiroSwitch(formaPagamento, 3)){
+
+        case 1:
+            std:: cout << "O pagamento será realizado hoje, dia: "
+                       << (tm_ptr->tm_mday) << "/"
+                       << (tm_ptr->tm_mon + 1) << "/"
+                       << (tm_ptr->tm_year + 1900) << std::endl;
+            std:: cout << "O valor a ser pago é dê: " << valorTotal - (valorTotal*0.05) << std:: endl;
+            std:: cout << "Digite um caractere e Enter para voltar ao menu...";
+            std:: cin >> sair;
+            break;
+
+        case 2: 
+            std:: cout << "O pagamento será realizados nos dias: " << std:: endl;
+            for( int i = 0; i < 3; i++){
+            std:: cout << (tm_ptr->tm_mday) << "/"
+                       << (tm_ptr->tm_mon + 1 + i) << "/"
+                       << (tm_ptr->tm_year + 1900 ) << std::endl;
+            }
+
+            std:: cout << "O valor a ser pago por parcela é dê: " << valorTotal/3 << std:: endl;
+            std:: cout << "Digite um caractere e Enter para voltar ao menu...";
+            std:: cin >> sair;
+            break;
+
+        case 3:
+            std:: cout << "O pagamento será realizado nos dias: " << std:: endl;
+            for( int i = 0; i < 12; i++){
+            std:: cout << (tm_ptr->tm_mday) << "/"
+                       << (tm_ptr->tm_mon + 1 + i) << "/"
+                       << (tm_ptr->tm_year + 1900) << std::endl;
+            }
+            std:: cout << "O valor a ser pago por parcela é dê: " << (valorTotal/12) + (valorTotal*0.1) << std:: endl;
+            std:: cout << "Digite um caractere e Enter para voltar ao menu...";
+            std:: cin >> sair;
+            break;
+
+        default:
+            system(clear);
+            std:: cout << "A opção digitada não é válida!";
+            sleep(1);
+
+            Pagamentos();
+
+
+    }
 
     carrinho.close();
     
@@ -362,6 +424,8 @@ void Sobre(){
 //MAIN
 int main(){
     setlocale(LC_ALL, "pt_BR.UTF-8");
+
+    CriarArquivos();
 
     // bool para controlar a duração do loop
     bool rodando = true;
