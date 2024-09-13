@@ -1,5 +1,2 @@
-melancia 5 9
-batata 4 5
-uva 1 3
-carambola 1 3
-beterraba 3 2 
+ma‡Æ 48 3.2
+bergamota 2 0.5 

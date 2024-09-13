@@ -2,6 +2,7 @@
 #include <time.h> //nao usei ainda -> talvez dê pra calendários :)
 #include <unistd.h> // biblioteca para sleep, é unix-like mas vem com o gcc
 #include <fstream>
+#include <sstream>
 
 // As funções estão em ordem de execução
 
@@ -17,6 +18,9 @@
 
 int RetornoInteiroSwitch(std:: string x, int limite);
 void Cadastro();
+void Carrinho();
+void Pagamentos();
+
 
 // Caracteriza os produtos
 struct Produto{
@@ -27,6 +31,7 @@ struct Produto{
 
 //função de abrir arquivinhos
 void CriarArquivos(){
+
     std:: ofstream temp("temp.txt");
     std:: fstream carrinho("carrinho.txt");
     temp.close();
@@ -39,9 +44,13 @@ void Escritor(std:: string nomeProduto, float quantidadeProduto, float valorProd
     std:: ofstream escritor;
     escritor.open("produtos.txt", std::ios::app);//app é para append mode, onde ele começa a escrever do fim do arquivo
 
-    escritor << nomeProduto << " ";
-    escritor << quantidadeProduto << " ";
-    escritor << valorProduto << " \n";
+    if(quantidadeProduto != 0){
+        escritor << nomeProduto << " ";
+        escritor << quantidadeProduto << " ";
+        escritor << valorProduto << " \n";
+    }
+    else std:: cout << "Erro! O produto possui 0 quantidades, logo, não foi salvo em 'pagamentos.txt'";
+    sleep(2);
 
     escritor.close();
 }
@@ -62,6 +71,7 @@ bool Leitor(std:: string nome){
             return true;
         }
     }
+
     leitor.close();
     return false;
 }
@@ -71,15 +81,15 @@ void Apagador(std:: string nomeProduto){
     std:: ifstream leitor;
     std:: ofstream escritor;
     std:: string produto;
-    std:: string quantidade;
-    std:: string valor;
+    float quantidade;
+    float valor;
 
     leitor.open("produtos.txt");
     escritor.open("temp.txt");
 
     while(leitor >> produto && leitor >> quantidade && leitor >> valor){
-        if(nomeProduto != produto){
-            escritor << produto << " ";
+        if(nomeProduto != produto && quantidade != 0){
+            escritor << produto    << " ";
             escritor << quantidade << " ";
             escritor << valor << std::endl;
         }
@@ -93,22 +103,36 @@ void Apagador(std:: string nomeProduto){
     CriarArquivos();
 }
 
+// função para printar o menu inicial na tela do usuário
+void MostreMenu(){
+    system(clear);
+
+    std:: cout << "Bem-Vindo ao Mercadinho!\n" << std:: endl;
+
+    std:: cout << "......1- Cadastro/Consulta......" << std:: endl;
+    std:: cout << "......2- Carrinho..............." << std:: endl;
+    std:: cout << "......3- Pagamentos............." << std:: endl;
+    std:: cout << "......4- Sobre.................." << std:: endl;
+    std:: cout << "......5- Sair..................." << std:: endl;
+
+
+    std:: cout << "Digite a opção desejada: ";
+}
 
 bool JaCadastrado (std:: string nomeProduto){
 
     std:: string resposta;
 
     if (Leitor(nomeProduto) == true){
-        std:: cout << "O produto informado já foi cadastrado!" << std:: endl;
-        return true;
 
+        return true;
     }
 
     return false;
 }
 
-// função de leitor de quantidade
-void LeitorQuantidade( std:: string nomeProduto, float quantidadeProduto){
+// função de leitor de quantidade e escritor no arquivo carrinho.txt
+void LeitorQuantidade(std:: string nomeProduto, float quantidadeProduto){
 
         std::ofstream carrinho("carrinho.txt", std:: ios_base:: app);
         std::fstream produtos("produtos.txt");
@@ -121,7 +145,11 @@ void LeitorQuantidade( std:: string nomeProduto, float quantidadeProduto){
         while( produtos >> produto && produtos >> quantidade && produtos >> valor){
 
             if( produto == nomeProduto && i == 0){
-                if (quantidade >= quantidadeProduto){
+                if(quantidadeProduto == 0){
+                    std:: cout << "A quantidade digitada foi nula! Digite novamente...";
+                    Carrinho();
+                }
+                else if (quantidade >= quantidadeProduto){
                     carrinho << produto << " ";
                     carrinho << quantidadeProduto << " ";
                     carrinho << (valor*quantidadeProduto) << std:: endl;
@@ -131,23 +159,161 @@ void LeitorQuantidade( std:: string nomeProduto, float quantidadeProduto){
                     Escritor(nomeProduto, (quantidade - quantidadeProduto), valor);
                     i++;
                 }
-                else {
+                else{
                     std:: string resposta;
-                    std:: cout << "A quantidade digitada não é válida! "; 
+                    std:: cout << "A quantidade digitada não é válida! " << std:: endl; 
                     std:: cout << "Gostaria de cadastrar uma nova quantidade? sim(s) não(): " << std:: endl;
                     std:: cin >> resposta;
                     if(resposta == "S" || resposta == "s" || resposta == "sim" || resposta == "Sim"){
                         std:: cout << "Você será redirecionado para a aba de cadastros...";
                         sleep(2);
                         Cadastro();
-
-
+                    }
+                    else {
+                        std:: cout << "Carrinho não atualizado, voltando para o menu...";
+                        sleep(2);
                     }
                 }
-
             }
         }
         carrinho.close();
+}
+
+// função para converter uma string em int no switch-case do menu
+int RetornoInteiroSwitch(std:: string x, int limite){
+    int inteiro = x[0] - 48;
+
+    if((x[1] - 48) >= 0 || inteiro > limite){
+        system(clear);
+        std:: cout << "Opção inválida, tente novamente" << std:: endl;
+        sleep(1);
+        return inteiro = limite + 1; // para cair em default
+    }
+
+    else return inteiro;
+}
+
+//função para converter a string quantidade em float
+float RetornoFloatQuantidade(std :: string quantidadeProduto){
+    float quantidade;
+    std:: stringstream quantidadess;
+
+    quantidadess << quantidadeProduto;
+    quantidadess >> quantidade;
+
+    return quantidade;
+}
+
+//função para converter a string valor em float
+float RetornoFloatValor(std:: string valorProduto){
+    float valor;
+    std:: stringstream valorss;
+
+    valorss << valorProduto;
+    valorss >> valor;
+
+
+    return valor;
+}
+
+// função para cadastrar os produtos
+void Cadastro(){
+    system(clear);
+
+    Produto produto;
+    std:: string resposta;
+
+    std:: cout << "Olá, vamos cadastrar seu produto! \n";
+    std:: cout << "Primeiro, você irá digitar o nome de seu produto,\ninformaremos a você caso ele já esteja cadastrado :)" << std:: endl;
+    
+    std:: cout << "Nome do produto: ";
+    std:: cin >> produto.nome;
+
+    if(JaCadastrado(produto.nome) == false){
+
+        std:: string quantidade;
+        std:: string valor;
+
+        std:: cout << "Quantidade do produto: ";
+        std:: cin >> quantidade;
+
+        std:: cout << "Valor da unidade: R$ "; 
+        std:: cin >> valor;
+
+        produto.quantidade = RetornoFloatQuantidade(quantidade);
+        produto.valor = RetornoFloatValor(valor);
+
+        Escritor(produto.nome, produto.quantidade, produto.valor);
+    }
+
+    else{
+
+        std:: cout << "O produto digitado já foi cadastrado!" << std:: endl;
+        std:: cout << "Gostaria de alterá-lo? " << std:: endl;
+        std:: cout << "sim(s) não(): ";
+        std:: cin >> resposta;
+
+        if(resposta == "s" || resposta == "S" || resposta == "sim" || resposta == "Sim" || resposta == "dã"){
+            Apagador(produto.nome);
+
+            std:: string quantidade;
+            std:: string valor;
+            
+            std:: cout << "Quantidade do produto: ";
+            std:: cin >> quantidade;
+
+            std:: cout << "Valor da unidade: R$ "; 
+            std:: cin >> valor;
+
+            produto.quantidade = RetornoFloatQuantidade(quantidade);
+            produto.valor = RetornoFloatValor(valor);
+
+            Escritor(produto.nome, produto.quantidade, produto.valor);
+        }
+    }
+} 
+
+
+
+void Carrinho(){
+    system(clear);
+
+    Produto produto;
+
+    std:: cout << "Olá, vamos adicionar produtos ao carrinho!" << std:: endl;
+    std:: cout << "Digite o nome do produto e a quantidade para adicionarmos :)" << std:: endl;
+
+    std:: cout << "Nome do produto: ";
+    std:: cin >> produto.nome;
+
+    if(JaCadastrado(produto.nome) == true){
+
+        std:: string quantidade;
+
+        std:: cout << "Quantidade do produto: ";
+        std:: cin >> quantidade;
+
+        produto.quantidade = RetornoFloatQuantidade(quantidade);
+
+        LeitorQuantidade(produto.nome, produto.quantidade);
+
+        std:: cout << "Produto cadastrado com sucesso!";
+        sleep(2);
+    }
+
+    else{
+        std:: string resposta;
+        std:: cout << "Produto não cadastrado!" << std:: endl;
+        std:: cout << "Gostaria de ser redirecionado para a página de cadastro? " << std:: endl;
+        std:: cout << "sim(s) nao(): ";
+        std:: cin >> resposta;
+        if(resposta == "s" || resposta == "S" || resposta == "sim" || resposta == "Sim" || resposta == "dã"){
+            std:: cout << "Redirecionando...";
+            sleep(1);
+            Cadastro();
+        }
+    }
+
 }
 
 //função para printar a tela de pagamentos e mostrar as condições e as datas
@@ -167,9 +333,9 @@ void Pagamentos(){
     std:: cout << "Bem-Vindo a tela de pagamentos! Aqui está o que você salvou no carrinho até agora:  " << std:: endl << std:: endl;
 
     while( carrinho >> produto && carrinho >> quantidade && carrinho >> valor){
-        std:: cout << "Nome do Produto: " << produto << std:: endl;
-        std:: cout << "Quantidade: " << quantidade << std:: endl;
-        std:: cout << "Valor: R$ " << valor << std:: endl << std:: endl;
+        std:: cout << "Nome do Produto: " << produto      << std:: endl;
+        std:: cout << "Quantidade: " << quantidade        << std:: endl;
+        std:: cout << "Valor Total: R$ " << valor << std:: endl << std:: endl;
         valorTotal+= valor;
     }
 
@@ -181,112 +347,20 @@ void Pagamentos(){
     
 }
 
-// função para printar o menu inicial na tela do usuário
-void MostreMenu(){
+//Função para contar um pouquinho sobre o trabalho
+void Sobre(){
     system(clear);
 
-    std:: cout << "Bem-Vindo ao Mercadinho!\n" << std:: endl;
-
-    std:: cout << "......1- Cadastro/Consulta......" << std:: endl;
-    std:: cout << "......2- Carrinho..............." << std:: endl;
-    std:: cout << "......3- Pagamentos............." << std:: endl;
-    std:: cout << "......4- Sobre.................." << std:: endl;
-    std:: cout << "......5- Sair..................." << std:: endl;
-
-
-    std:: cout << "Digite a opção desejada: ";
-
+    std:: string sair;
+    std:: cout << "Oiê! Este trabalho foi feito pela aluna Juliana do 2° Período de Ciência da Computação.\n";
+    std:: cout << "Ele utiliza das bibliotecas <time.h> para lidar com datas e horários e <unistd.h> para a função ";
+    std:: cout << "de sleep(). Para o código de cores temos o padrão ANSI." << std:: endl;
+    std:: cout << "Digite qualquer tecla e pressione Enter para voltar ao menu.";
+    std:: cin >> sair;
 }
-
-// função para converter uma string em int nos switch-case
-int RetornoInteiroSwitch(std:: string x, int limite){
-    int inteiro = x[0] - 48;
-
-    if((x[1] - 48) >= 0 || inteiro > limite){
-        system(clear);
-        std:: cout << "Opção inválida, tente novamente" << std:: endl;
-        sleep(1);
-        return inteiro = limite + 1; // para cair em default
-    }
-     else return inteiro;
-}
-
-// função para cadastrar os produtos
-void Cadastro(){
-    system(clear);
-
-    Produto produto;
-    std:: string resposta;
-
-    std:: cout << "Olá, vamos cadastrar seu produto! \n";
-    std:: cout << "Primeiro, você irá digitar o nome de seu produto,\ninformaremos a você caso ele já esteja cadastrado :)" << std:: endl;
-    
-    std:: cout << "Nome do produto: ";
-    std:: cin >> produto.nome;
-
-    if(JaCadastrado(produto.nome) == false){
-
-        std:: cout << "Quantidade do produto: ";
-        std:: cin >> produto.quantidade;
-
-        std:: cout << "Valor da unidade: R$ "; 
-        std:: cin >> produto.valor;
-
-        Escritor(produto.nome, produto.quantidade, produto.valor);
-    }
-
-    else{
-
-        std:: cout << "Gostaria de alterá-lo? "
-                   << "sim(s) não (n): ";
-        std:: cin >> resposta;
-
-        if(resposta == "s" || resposta == "S" || resposta == "sim" || resposta == "Sim" || resposta == "dã"){
-            Apagador(produto.nome);
-            
-            std:: cout << "Quantidade do produto: ";
-            std:: cin >> produto.quantidade;
-
-            std:: cout << "Valor da unidade: R$ "; 
-            std:: cin >> produto.valor;
-
-            Escritor(produto.nome, produto.quantidade, produto.valor);
-        }
-    }
-} 
-
-
-
-void Carrinho(){
-
-    system(clear);
-
-    Produto produto;
-
-    std:: cout << "Olá, vamos adicionar produtos ao carrinho!" << std:: endl;
-    std:: cout << "Digite o nome do produto e a quantidade para adicionarmos :)" << std:: endl;
-
-    std:: cout << "Nome do produto: ";
-    std:: cin >> produto.nome;
-
-    if(JaCadastrado(produto.nome) == true){
-        std:: cout << "Quantidade do produto: ";
-        std:: cin >> produto.quantidade;
-
-        LeitorQuantidade(produto.nome, produto.quantidade);
-    }
-
-    else{
-        std:: cout << "Produto não cadastrado, você será redirecionado para a página de cadastro...";
-        sleep(2);
-        Cadastro();
-    }
-}
-
 
 //MAIN
 int main(){
-
     setlocale(LC_ALL, "pt_BR.UTF-8");
 
     // bool para controlar a duração do loop
@@ -310,7 +384,7 @@ int main(){
             Pagamentos();
             break;
         case 4 : 
-            //sobre();
+            Sobre();
             break;
         case 5 :
             std:: cout << "Saindo...";
@@ -324,11 +398,6 @@ int main(){
         }
     }
     while(rodando == true);
-
-
-
-
-
 
     return 0;
 }
